@@ -7,14 +7,14 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)
+    password = db.Column(db.Text, nullable=False)
 
     def to_json(self):
         return {
             'id': self.id,
             'username': self.username,
             'email': self.email,
-            'password': ''    
+            'password': self.password    
         }
 
 class Movie(db.Model):

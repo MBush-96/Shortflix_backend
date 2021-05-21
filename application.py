@@ -1,16 +1,20 @@
 import os
+import models
+import sqlalchemy
+import hashlib
 from types import MethodDescriptorType
 from dotenv import load_dotenv
 from flask import Flask, request
-import sqlalchemy
-import models
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
 models.db.init_app(app)
+
 
 @app.route('/', methods=["GET"])
 def connect():
@@ -18,10 +22,11 @@ def connect():
 
 @app.route('/users/signup', methods=['POST'])
 def signup():
+    z = request.json["password"].encode()
     user = models.User(
         username = request.json["username"],
         email = request.json["email"],
-        password = request.json["password"]
+        password = hashlib.sha256(z).hexdigest()
     )
 
     models.db.session.add(user)
@@ -34,8 +39,8 @@ def signup():
 @app.route('/users/login', methods=['POST'])
 def login():
     user = models.User.query.filter_by(email=request.json["email"]).first()
-
-    if user.password == request.json["password"]:
+    p = request.json["password"].encode()
+    if  hashlib.sha256(p).hexdigest() == user.password:
         return {
             'user': user.to_json()
         }
