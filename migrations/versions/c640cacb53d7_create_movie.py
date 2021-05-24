@@ -24,7 +24,8 @@ def upgrade():
         sa.Column('title', sa.String, nullable=False, unique=True),
         sa.Column('description', sa.String, nullable=False),
         sa.Column('movie_src', sa.String, nullable=False),
-        sa.Column('rating', sa.Float, nullable=False)
+        sa.Column('rating', sa.Float, nullable=False),
+        sa.Column('movie_cover', sa.String, nullable=False)
     )
 
 

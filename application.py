@@ -2,7 +2,7 @@ import os
 import models
 import sqlalchemy
 import hashlib
-from types import MethodDescriptorType
+# from types import MethodDescriptorType
 from dotenv import load_dotenv
 from flask import Flask, request
 from flask_cors import CORS
@@ -22,29 +22,36 @@ def connect():
 
 @app.route('/users/signup', methods=['POST'])
 def signup():
-    z = request.json["password"].encode()
-    user = models.User(
-        username = request.json["username"],
-        email = request.json["email"],
-        password = hashlib.sha256(z).hexdigest()
-    )
+    try: 
+        z = request.json["password"].encode()
+        user = models.User(
+            username = request.json["username"],
+            email = request.json["email"],
+            password = hashlib.sha256(z).hexdigest()
+        )
+        models.db.session.add(user)
+        models.db.session.commit()
 
-    models.db.session.add(user)
-    models.db.session.commit()
-
-    return {
-        'user': user.to_json()
-    }
-
-@app.route('/users/login', methods=['POST'])
-def login():
-    user = models.User.query.filter_by(email=request.json["email"]).first()
-    p = request.json["password"].encode()
-    if  hashlib.sha256(p).hexdigest() == user.password:
         return {
             'user': user.to_json()
         }
-    return { 'Login': 'Unauthorized'}
+    except sqlalchemy.exc.IntegrityError:
+        return {
+            'error': 'error'
+        }
+
+@app.route('/users/login', methods=['POST'])
+def login():
+    try:
+        user = models.User.query.filter_by(email=request.json["email"]).first()
+        p = request.json["password"]
+        if  user.validate_pass(p):
+            return {
+                'user': user.to_json()
+            }
+        return { 'Login': 'Unauthorized' }
+    except AttributeError:
+        return { 'Login': 'Unauthorized'}
 
 @app.route('/users/<int:id>', methods=['PUT'])
 def update_user(id):

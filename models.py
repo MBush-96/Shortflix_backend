@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-
+import hashlib
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -17,6 +17,12 @@ class User(db.Model):
             'password': self.password    
         }
 
+    def validate_pass(self, p):
+        p = p.encode()
+        z = hashlib.sha256(p).hexdigest()
+        if self.password == z:
+            return True
+
 class Movie(db.Model):
     __tablename__ = 'movies'
 
@@ -25,6 +31,7 @@ class Movie(db.Model):
     description = db.Column(db.String, nullable=False)
     movie_src = db.Column(db.String, nullable=False)
     rating = db.Column(db.Float, nullable=False)
+    movie_cover = db.Column(db.String, nullable=False)
 
     def to_json(self):
         return {
