@@ -2,10 +2,11 @@ import os
 import models
 import sqlalchemy
 import hashlib
-# from types import MethodDescriptorType
 from dotenv import load_dotenv
 from flask import Flask, request
 from flask_cors import CORS
+import seed
+import jwt
 
 load_dotenv()
 
@@ -15,10 +16,12 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
 models.db.init_app(app)
 
+# app.route('/seed', methods=["POST"])(seed.seed())
 
 @app.route('/', methods=["GET"])
 def connect():
     return 'ok'
+
 
 @app.route('/users/signup', methods=['POST'])
 def signup():
@@ -44,9 +47,11 @@ def signup():
 def login():
     try:
         user = models.User.query.filter_by(email=request.json["email"]).first()
+        user_token = jwt.encode({'id': user.id}, os.environ.get("JWT_SECRET"))
         p = request.json["password"]
         if  user.validate_pass(p):
             return {
+                'token': user_token,
                 'user': user.to_json()
             }
         return { 'Login': 'Unauthorized' }
@@ -72,6 +77,7 @@ def create_movie():
         title = request.json["title"],
         description = request.json["description"],
         movie_src = request.json["movie_src"],
+        movie_cover = request.json["movie_cover"],
         rating = request.json["rating"]
     )
 
@@ -92,11 +98,12 @@ def get_movie(movie_id):
     elif request.method == 'PUT':
         movie.title = request.json["title"]
         movie.description = request.json["description"]
+        movie.movie_src = request.json["movie_src"]
         
         models.db.session.add(movie)
         models.db.session.commit()
         return { 
-            movie.to_json ()
+            'movie': movie.to_json()
         }
     elif request.method == 'DELETE':
         models.db.session.delete(movie)
@@ -131,6 +138,46 @@ def get_all_ratings_of_movie(movie_id):
     ratings = models.Rating.query.filter_by(id=movie_id).all()
 
     return { 'Ratings': [r.to_json() for r in ratings]}
+
+@app.route('/user/verify', methods=['GET'])
+def verify():
+    decode = jwt.decode(request.headers["Authorization"], options={"verify_signature": False})
+    user = models.User.query.filter_by(id=decode['id']).first()
+    if user:
+        return { 'user': user.to_json() }
+    else:
+        return { 'error': 'user not found' }, 404
+
+@app.route('/review/new', methods=["POST"])
+def new_review():
+    review = models.Review(
+        review_body = request.json["review_body"],
+        movie_id = request.json["movie_id"],
+        user_id = request.json["user_id"]
+    )
+
+    models.db.session.add(review)
+    models.db.session.commit()
+
+    return {
+        'Review': review.to_json()
+    }
+
+@app.route('/review/all', methods=["GET"])
+def all_reviews():
+    reviews = models.Review.query.all()
+
+    return {
+        'Reviews': [r.to_json() for r in reviews]
+    }
+
+@app.route('/reviews/<int:movie_id>', methods=["GET"])
+def get_movie_reviews(movie_id):
+    reviews = models.Review.query.filter_by(movie_id=movie_id).all()
+
+    return {
+        'Reviews': [r.to_json() for r in reviews]
+    }
 
 if __name__ == '__main__':
     port = os.environ.get('PORT') or 5000

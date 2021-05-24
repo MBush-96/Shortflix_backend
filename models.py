@@ -39,6 +39,7 @@ class Movie(db.Model):
             'title': self.title,
             'description': self.description,
             'movie_src': self.movie_src,
+            'movie_cover': self.movie_cover,
             'rating': self.rating
         }
 
@@ -71,3 +72,20 @@ class Rating(db.Model):
             'rating': self.rating,
             'user_id': self.user_id
         }
+
+class Review(db.Model):
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    review_body = db.Column(db.String, nullable=False)
+    movie_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+
+    def to_json(self):
+        return{
+            'id': self.id,
+            'review_body': self.review_body,
+            'movie_id': self.movie_id,
+            'user_id': self.user_id
+        }
+    
