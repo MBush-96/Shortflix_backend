@@ -115,6 +115,14 @@ def seed():
         rating = 0
     )
 
+    movie15 = models.Movie(
+        title = 'SC 38 Reimagined',
+        description = 'Star wars SC 38 Reimagined',
+        movie_src ='https://youtube.com/embed/to2SMng4u1k',
+        movie_cover = 'https://i.imgur.com/pTN3Qzt.jpg',
+        rating= 0
+    )
+
     models.db.session.add(movie1)
     models.db.session.add(movie2)
     models.db.session.add(movie3)
@@ -129,9 +137,11 @@ def seed():
     models.db.session.add(movie12)
     models.db.session.add(movie13)
     models.db.session.add(movie14)
+    models.db.session.add(movie15)
+
 
     models.db.session.commit()
-    print(models.Movie.query.filter_by(title='SCP: Overlord').first().to_json()['id'])
+
     movie_filter = models.Movie.query.filter_by
 
     tag1 = models.Tag(
