@@ -9,6 +9,8 @@ def seed():
         rating = 0
     )
 
+
+
     movie2 = models.Movie(
         title = "Dig Your Own Grave",
         description = "A man is forced to dig his own grave in the desert, but the ground is to hard.",
@@ -128,11 +130,41 @@ def seed():
     models.db.session.add(movie13)
     models.db.session.add(movie14)
 
+    models.db.session.commit()
+    print(models.Movie.query.filter_by(title='SCP: Overlord').first().to_json()['id'])
+    movie_filter = models.Movie.query.filter_by
 
-    tag = models.Tag(
-        movie_id = 1,
+    tag1 = models.Tag(
+        movie_id = models.Movie.query.filter_by(title='SCP: Overlord').first().to_json()['id'],
         genre = 'Thriller'
     )
 
-    models.db.session.add(tag)
+    tag2 = models.Tag(
+        movie_id = movie_filter(title='SCP: Overlord').first().to_json()['id'],
+        genre = 'Action'
+    )
+
+    tag3 = models.Tag(
+        movie_id = movie_filter(title='Dig Your Own Grave').first().to_json()['id'],
+        genre = 'Comedy'
+    )
+
+    tag4 = models.Tag(
+        movie_id = movie_filter(title='Feeling Through').first().to_json()['id'],
+        genre = 'Drama'
+    )
+
+    tag5 = models.Tag(
+        movie_id = movie_filter(title='Feeling Through').first().to_json()['id'],
+        genre = 'Adventure'
+    )
+
+    models.db.session.add(tag1)
+    models.db.session.add(tag2)
+    models.db.session.add(tag3)
+    models.db.session.add(tag4)
+    models.db.session.add(tag5)
+
+
+
     models.db.session.commit()

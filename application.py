@@ -79,6 +79,22 @@ def update_user(id):
             'User': user.to_json()
         }
 
+@app.route('/user/update/<int:id>', methods=["PUT"])
+def change_pass(id):
+    user = models.User.query.filter_by(id=id).first()
+
+    if user.validate_pass(request.json["cPassword"]):
+        z = request.json["password"].encode()
+        user.password = hashlib.sha256(z).hexdigest()
+        
+
+    models.db.session.add(user)
+    models.db.session.commit()
+
+    return {
+        'Updated User': user.to_json()
+    }
+
 @app.route('/movies/create', methods=['POST'])
 def create_movie():
     movie = models.Movie(
@@ -194,12 +210,15 @@ def get_all_ratings_of_movie(movie_id):
 @app.route('/rating/movies/update', methods=["PUT"])
 def update_rating():
     if request.method == "PUT":
-            ratings = models.Rating.query.filter_by(movie_id=36).filter_by(user_id=request.json["user_id"]).first()
+            ratings = models.Rating.query.filter_by(movie_id=request.json["movie_id"]).filter_by(user_id=request.json["user_id"]).first()
             ratings.rating = request.json["rating"]
-            # models.db.session.add(ratings)
-            # models.db.session.commit()
+            models.db.session.add(ratings)
+            models.db.session.commit()
+
+            all_ratings = models.Rating.query.filter_by(movie_id=request.json["movie_id"]).all()
 
             return {
+                'All ratings': [r.to_json() for r in all_ratings],
                 'Rating': ratings.to_json()
             }
 
