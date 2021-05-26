@@ -13,7 +13,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL').replace('postgres', 'postgresql')
 models.db.init_app(app)
 
 @app.route('/seed', methods=["POST"])
