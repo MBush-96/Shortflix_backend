@@ -81,6 +81,38 @@ def seed():
         rating = 0
     )
 
+    movie11 = models.Movie(
+        title = "The Scorpion's Tale",
+        description = "A hitman on death row gets one last visit from his son.",
+        movie_src ="https://youtube.com/embed/761IajDS8SM",
+        movie_cover = "https://i.imgur.com/UhOmgL0.jpg",
+        rating = 0
+    )
+
+    movie12 = models.Movie(
+        title = '096 | SCP',
+        description = 'SCP #096 escapes containment.',
+        movie_src = 'https://youtube.com/embed/MEOZkf4imaM',
+        movie_cover = 'https://i.imgur.com/OCTbEGP.jpg',
+        rating = 0
+    )
+
+    movie13 = models.Movie(
+        title = 'Astartes',
+        description = 'Astartes parts 1-5',
+        movie_src = 'https://youtube.com/embed/DVXEYksoE6c',
+        movie_cover = 'https://i.imgur.com/v1uRw1s.jpg',
+        rating = 0
+    )
+
+    movie14 = models.Movie(
+        title = 'Spawn: The Recall',
+        description = 'Spawn Fan-Film',
+        movie_src = 'https://youtube.com/embed/f5tCbd4fgkw',
+        movie_cover = 'https://i.imgur.com/vFAItb0.jpg',
+        rating = 0
+    )
+
     models.db.session.add(movie1)
     models.db.session.add(movie2)
     models.db.session.add(movie3)
@@ -91,6 +123,16 @@ def seed():
     models.db.session.add(movie8)
     models.db.session.add(movie9)
     models.db.session.add(movie10)
-    models.db.session.commit()
+    models.db.session.add(movie11)
+    models.db.session.add(movie12)
+    models.db.session.add(movie13)
+    models.db.session.add(movie14)
 
-    return 'seeded'
+
+    tag = models.Tag(
+        movie_id = 1,
+        genre = 'Thriller'
+    )
+
+    models.db.session.add(tag)
+    models.db.session.commit()

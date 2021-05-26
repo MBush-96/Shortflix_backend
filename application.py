@@ -16,7 +16,11 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
 models.db.init_app(app)
 
-# app.route('/seed', methods=["POST"])(seed.seed())
+@app.route('/seed', methods=["POST"])
+def seed_backend():
+    seed.seed()
+
+    return 'Seeded'
 
 @app.route('/', methods=["GET"])
 def connect():
@@ -58,18 +62,22 @@ def login():
     except AttributeError:
         return { 'Login': 'Unauthorized'}
 
-@app.route('/users/<int:id>', methods=['PUT'])
+@app.route('/users/<int:id>', methods=['PUT', 'GET'])
 def update_user(id):
     user = models.User.query.filter_by(id=id).first()
+    if request.method == 'PUT':
+        user.password = request.json["password"]
 
-    user.password = request.json["password"]
+        models.db.session.add(user)
+        models.db.session.commit()
 
-    models.db.session.add(user)
-    models.db.session.commit()
-
-    return {
-        'updated': user.to_json()
-    }
+        return {
+            'updated': user.to_json()
+        }
+    elif request.method == 'GET':
+        return {
+            'User': user.to_json()
+        }
 
 @app.route('/movies/create', methods=['POST'])
 def create_movie():
@@ -85,7 +93,7 @@ def create_movie():
     models.db.session.commit()
 
     return {
-        'Created Movie': movie.to_json()
+        'Created_Movie': movie.to_json()
     }
 
 @app.route('/movies/<int:movie_id>', methods=['GET', 'PUT', 'DELETE'])
@@ -109,7 +117,7 @@ def get_movie(movie_id):
         models.db.session.delete(movie)
         models.db.session.commit()
         return {
-            'Deleted Movie': movie.to_json()
+            'Deleted_Movie': movie.to_json()
         }
     return {'no'}
 
@@ -119,7 +127,7 @@ def all_movies():
 
     return { 'Movies': [m.to_json() for m in movie]}
 
-@app.route('/tag', methods=['POST'])
+@app.route('/tag', methods=["POST"])
 def create_tag():
     tag = models.Tag(
         genre = request.json["genre"],
@@ -133,11 +141,67 @@ def create_tag():
         tag.to_json()
     }
 
-@app.route('/rating/movies/<int:movie_id>', methods=['GET'])
-def get_all_ratings_of_movie(movie_id):
-    ratings = models.Rating.query.filter_by(id=movie_id).all()
+@app.route('/tag/all', methods=["GET"])
+def all_tags():
+    tags = models.Tag.query.all()
 
-    return { 'Ratings': [r.to_json() for r in ratings]}
+    return {
+        'Tags': [t.to_json() for t in tags]
+    }
+
+@app.route('/rating/<int:user_id>', methods=["POST"])
+def get_user_rating(user_id):
+    user_rating = models.Rating.query.filter_by(user_id=user_id).all()
+
+    return {
+        'Rating': [ur.to_json() for ur in user_rating]
+    }
+
+@app.route('/rating/movies/<int:movie_id>', methods=["GET", "POST", "PUT"])
+def get_all_ratings_of_movie(movie_id):
+    try:
+        if request.method == "GET":
+            ratings = models.Rating.query.filter_by(movie_id=movie_id).all()
+
+            sum_of_ratings = 0
+            for r in ratings:
+                sum_of_ratings += r.rating
+
+            avg = sum_of_ratings / len(ratings)
+            
+            return { 
+                'average': avg,
+                'Ratings': [r.to_json() for r in ratings]
+            }
+        elif request.method == "POST":
+            ratings_new = models.Rating(
+                movie_id = request.json["movie_id"],
+                rating = float(request.json["rating"]),
+                user_id = request.json["user_id"]
+            )
+
+            models.db.session.add(ratings_new)
+            models.db.session.commit()
+
+            return {
+                'Rating': ratings_new.to_json()
+            }
+    except ZeroDivisionError:
+        return {
+            'average': 0
+        }
+
+@app.route('/rating/movies/update', methods=["PUT"])
+def update_rating():
+    if request.method == "PUT":
+            ratings = models.Rating.query.filter_by(movie_id=36).filter_by(user_id=request.json["user_id"]).first()
+            ratings.rating = request.json["rating"]
+            # models.db.session.add(ratings)
+            # models.db.session.commit()
+
+            return {
+                'Rating': ratings.to_json()
+            }
 
 @app.route('/user/verify', methods=['GET'])
 def verify():
