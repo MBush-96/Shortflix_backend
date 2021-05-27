@@ -13,7 +13,8 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL').replace('postgres', 'postgresql')
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL')
+# .replace('postgres', 'postgresql')
 models.db.init_app(app)
 
 @app.route('/seed', methods=["POST"])
@@ -154,7 +155,7 @@ def create_tag():
     models.db.session.commit()
 
     return {
-        tag.to_json()
+        'tag': tag.to_json()
     }
 
 @app.route('/tag/all', methods=["GET"])
@@ -211,6 +212,7 @@ def get_all_ratings_of_movie(movie_id):
 def update_rating():
     if request.method == "PUT":
             ratings = models.Rating.query.filter_by(movie_id=request.json["movie_id"]).filter_by(user_id=request.json["user_id"]).first()
+
             ratings.rating = request.json["rating"]
             models.db.session.add(ratings)
             models.db.session.commit()
@@ -263,5 +265,5 @@ def get_movie_reviews(movie_id):
     }
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT')) or 5000
+    port = os.environ.get('PORT') or 5000
     app.run(host='0.0.0.0', port=port, debug=True)
